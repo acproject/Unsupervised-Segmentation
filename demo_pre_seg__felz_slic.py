@@ -68,6 +68,6 @@ def press_wasdqe_to_adjust_parameter_of_slic(img):
 
 
 if __name__ == '__main__':
-    image = cv2.imread('image/tiger.jpg')
+    image = cv2.imread('image/3.png')
     press_wasdqe_to_adjust_parameter_of_felz(image)
     # press_wasdqe_to_adjust_parameter_of_slic(image)

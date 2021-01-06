@@ -10,8 +10,8 @@ import torch.nn as nn
 
 
 class Args(object):
-    input_image_path = 'image/woof.jpg'  # image/coral.jpg image/tiger.jpg
-    train_epoch = 2 ** 6
+    input_image_path = 'image/3.png'  # image/coral.jpg image/tiger.jpg
+    train_epoch = 2 ** 8
     mod_dim1 = 64  #
     mod_dim2 = 32
     gpu_id = 0
@@ -49,21 +49,21 @@ def run():
     start_time0 = time.time()
 
     args = Args()
-    torch.cuda.manual_seed_all(1943)
-    np.random.seed(1943)
+    torch.cuda.manual_seed_all(1983)
+    np.random.seed(1983)
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)  # choose GPU:0
     image = cv2.imread(args.input_image_path)
 
     '''segmentation ML'''
     seg_map = segmentation.felzenszwalb(image, scale=32, sigma=0.5, min_size=64)
-    # seg_map = segmentation.slic(image, n_segments=10000, compactness=100)
+    # seg_map = segmentation.slic(image, n_segments=1000, compactness=100)
     seg_map = seg_map.flatten()
     seg_lab = [np.where(seg_map == u_label)[0]
                for u_label in np.unique(seg_map)]
 
     '''train init'''
     device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
-
+    # device = torch.device("cpu")
     tensor = image.transpose((2, 0, 1))
     tensor = tensor.astype(np.float32) / 255.0
     tensor = tensor[np.newaxis, :, :, :]
@@ -95,9 +95,13 @@ def run():
             im_target[inds] = u_labels[np.argmax(hist)]
 
         '''backward'''
+        min_loss = 10000
         target = torch.from_numpy(im_target)
         target = target.to(device)
         loss = criterion(output, target)
+        if loss < min_loss:
+            min_loss = loss
+            torch.save(model, 'MyFCN_Model.pt')
         loss.backward()
         optimizer.step()
 
